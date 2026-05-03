@@ -1,0 +1,135 @@
+# PromptNexus Memory Foundation
+# ----------------------------------------------------------------------------
+# Local memory + storage stack: ChromaDB (vector) + Postgres (structured) +
+# SQLite (verdicts/audits) + Memory Palace (long-term reasoning store).
+#
+# Boot:
+#   docker compose -f docker/docker-compose.memory.yml up -d
+#
+# Verify:
+#   docker compose -f docker/docker-compose.memory.yml ps
+#   curl http://localhost:8000/api/v2/heartbeat   # chroma
+#   psql -h localhost -U promptnexus -d promptnexus -c '\dt'
+#   curl http://localhost:8077/health             # mempalace
+#
+# Volumes are named so they survive container rebuild and are picked up by
+# the prompt-nexus devcontainer image.
+#
+# Network: an isolated bridge so PromptNexus's runtime can reach all
+# backends by service name (chroma, postgres, mempalace).
+# ----------------------------------------------------------------------------
+
+services:
+  chroma:
+    image: chromadb/chroma:0.5.20
+    container_name: promptnexus-chroma
+    restart: unless-stopped
+    ports:
+      # Bind to 127.0.0.1 only — local-host access; no LAN exposure.
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - chroma-data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma
+      - ANONYMIZED_TELEMETRY=FALSE
+      # Auth disabled for local dev — bridge network is isolated.
+      # To enable: mount a creds file at /chroma/auth/server.htpasswd and
+      # uncomment the two CHROMA_SERVER_AUTHN_* lines below.
+      # - CHROMA_SERVER_AUTHN_CREDENTIALS_FILE=/chroma/auth/server.htpasswd
+      # - CHROMA_SERVER_AUTHN_PROVIDER=chromadb.auth.basic_authn.BasicAuthenticationServerProvider
+    networks:
+      - promptnexus
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v2/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  postgres:
+    # pgvector/pgvector bundles the vector extension; required by 01-schema.sql.
+    image: pgvector/pgvector:pg17
+    container_name: promptnexus-postgres
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_USER: ${PROMPTNEXUS_PG_USER:-promptnexus}
+      POSTGRES_PASSWORD: ${PROMPTNEXUS_PG_PASSWORD:-changeme}
+      POSTGRES_DB: ${PROMPTNEXUS_PG_DB:-promptnexus}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - promptnexus
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PROMPTNEXUS_PG_USER:-promptnexus} -d ${PROMPTNEXUS_PG_DB:-promptnexus}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Memory Palace — long-term reasoning store keyed on graph relations
+  # between intents, verdicts, and outcomes. The user pointed at
+  # mempalace/mempalace; we run it as a thin service in front of postgres.
+  # See scripts/foundation/install-mempalace.sh for the build path.
+  mempalace:
+    build:
+      context: ../scripts/foundation
+      dockerfile: mempalace.Dockerfile
+    container_name: promptnexus-mempalace
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8077:8077"
+    environment:
+      - MEMPALACE_PG_URL=postgresql://${PROMPTNEXUS_PG_USER:-promptnexus}:${PROMPTNEXUS_PG_PASSWORD:-changeme}@postgres:5432/${PROMPTNEXUS_PG_DB:-promptnexus}
+      - MEMPALACE_CHROMA_URL=http://chroma:8000
+      - MEMPALACE_DATA_DIR=/data
+      - MEMPALACE_PORT=8077
+    volumes:
+      - mempalace-data:/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      chroma:
+        condition: service_started
+    networks:
+      - promptnexus
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8077/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # SQLite is file-based; no service needed. The verdict/audit/roadblock
+  # streams in evals/ are SQLite-friendly. We expose an adminer-lite UI for
+  # ad-hoc queries.
+  sqlite-web:
+    image: coleifer/sqlite-web:latest
+    container_name: promptnexus-sqlite-web
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8079:8080"
+    volumes:
+      - ../evals:/data
+    # sqlite-web auto-creates the db file on first connect; --read-only
+    # dropped so an empty file can be created without manual seeding. The
+    # source of truth is Postgres + ChromaDB; this is a convenience viewer.
+    command: ["sqlite_web", "/data/promptnexus.sqlite", "-H", "0.0.0.0"]
+    networks:
+      - promptnexus
+
+volumes:
+  chroma-data:
+    driver: local
+  postgres-data:
+    driver: local
+  mempalace-data:
+    driver: local
+
+networks:
+  promptnexus:
+    name: promptnexus
+    driver: bridge

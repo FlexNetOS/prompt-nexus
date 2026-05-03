@@ -1,0 +1,28 @@
+{
+  "name": "prompt-nexus",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "description": "You speak. PromptNexus delivers. No plans, no workarounds, no dangling threads — only the finished product.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "btoo:check": "node hooks/btoo-stop-gate.js",
+    "lint:routing": "node scripts/lint-routing-matrix.js",
+    "test:listener": "node subagents/popeye-listener/test/run-fixtures.js",
+    "verify": "npm run lint:routing"
+  },
+  "bin": {
+    "prompt-nexus-btoo": "hooks/btoo-stop-gate.js"
+  },
+  "keywords": [
+    "prompt-nexus",
+    "boil-the-ocean",
+    "claude-code",
+    "agent-harness",
+    "operator",
+    "intent-classification"
+  ],
+  "license": "MIT"
+}

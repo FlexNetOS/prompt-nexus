@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0.0",
+  "turn_id": "smoke-final-1",
+  "operator": "david",
+  "timestamp": "2026-05-03T08:48:54.532Z",
+  "cwd": "/test",
+  "backend": "fallback",
+  "duration_ms": 2,
+  "type": "request",
+  "scope_hint": "test",
+  "urgency": "normal",
+  "content": "add a unit test for the BTOO scorer",
+  "confidence": 0.55,
+  "reasoning": "keyword fallback (Haiku unavailable, timed out, or budget exhausted)"
+}

@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0.0",
+  "turn_id": "smoke-end2end-1",
+  "operator": "david",
+  "timestamp": "2026-05-03T08:40:53.399Z",
+  "cwd": "/test",
+  "backend": "fallback",
+  "duration_ms": 1,
+  "type": "request",
+  "scope_hint": "test",
+  "urgency": "normal",
+  "content": "add tests for the BTOO hook",
+  "confidence": 0.55,
+  "reasoning": "keyword fallback (Haiku unavailable, timed out, or budget exhausted)"
+}

@@ -1,0 +1,38 @@
+{
+  "name": "PromptNexus",
+  "image": "ghcr.io/flexnetos/prompt-nexus-devcontainer:latest",
+  "remoteUser": "node",
+  "mounts": [
+    "source=prompt-nexus-node-modules,target=/workspaces/prompt-nexus/node_modules,type=volume",
+    "source=prompt-nexus-yarn-cache,target=/home/node/.yarn/berry/cache,type=volume",
+    "source=prompt-nexus-npm-cache,target=/home/node/.npm,type=volume",
+    "source=prompt-nexus-claude-state,target=/home/node/.claude,type=volume",
+    "source=prompt-nexus-evals,target=/workspaces/prompt-nexus/evals/verdicts,type=volume"
+  ],
+  "containerEnv": {
+    "ECC_HOOK_PROFILE": "standard",
+    "DEFAULT_BASE_BRANCH": "main",
+    "BTOO_AUTO_REMEDIATE": "1",
+    "BTOO_AUTO_REMEDIATE_SCOPE": "local",
+    "PROMPT_NEXUS_ROOT": "/workspaces/prompt-nexus",
+    "PROMPT_NEXUS_OPERATOR": "david",
+    "ENABLE_VERBOSE_LOGGING": "false"
+  },
+  "postCreateCommand": "bash .devcontainer/postCreate.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "anthropic.claude-code",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "DavidAnson.vscode-markdownlint"
+      ],
+      "settings": {
+        "files.eol": "\n",
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+  "forwardPorts": [],
+  "portsAttributes": {}
+}

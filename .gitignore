@@ -1,0 +1,19 @@
+node_modules/
+.yarn/
+*.log
+.DS_Store
+
+# Eval artifacts (runtime, not source)
+evals/verdicts/
+evals/audits/
+evals/roadblocks/
+
+# BAML runtime cache
+.baml/
+
+# IDE
+.vscode/settings.json
+
+# Local env
+.env
+.env.local

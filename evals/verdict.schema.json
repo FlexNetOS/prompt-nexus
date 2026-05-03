@@ -1,0 +1,211 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prompt-nexus.local/schemas/verdict.schema.json",
+  "title": "Boil-the-Ocean Verdict",
+  "description": "Schema for a per-turn BTOO verdict emitted by Leonidas at Stop. One file per turn, written to evals/verdicts/<ISO-timestamp>-<turn-id>.json.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "turn_id",
+    "timestamp",
+    "operator",
+    "commitment",
+    "delivery",
+    "principles",
+    "decision",
+    "auditor_findings"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Verdict schema version. Bump on breaking changes."
+    },
+    "turn_id": {
+      "type": "string",
+      "description": "Unique ID for the conversation turn (UUID or session-scoped counter)."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp at which Leonidas signed the verdict."
+    },
+    "operator": {
+      "type": "string",
+      "description": "Operator identity (e.g. 'david')."
+    },
+    "commitment": {
+      "type": "object",
+      "description": "What was committed to at the start of the turn (from QueenB's signed plan).",
+      "required": ["intent_summary", "deliverables_promised"],
+      "properties": {
+        "intent_summary": { "type": "string" },
+        "deliverables_promised": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        "permanent_solve_reachable": {
+          "type": "boolean",
+          "description": "Was a permanent solve in scope for this turn? If true, partial deliveries trigger BLOCK."
+        }
+      }
+    },
+    "delivery": {
+      "type": "object",
+      "description": "What was actually delivered.",
+      "required": ["files_changed", "tests_run", "docs_updated"],
+      "properties": {
+        "files_changed": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "tests_run": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "status"],
+            "properties": {
+              "name": { "type": "string" },
+              "status": { "enum": ["pass", "fail", "skip", "missing"] },
+              "duration_ms": { "type": "number" }
+            }
+          }
+        },
+        "docs_updated": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "deliverables_satisfied": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Subset of commitment.deliverables_promised actually achieved."
+        }
+      }
+    },
+    "principles": {
+      "type": "object",
+      "description": "Per-principle scorecard. Each principle: pass | gap | blocker.",
+      "required": [
+        "p1_search_the_ground",
+        "p2_build_completely",
+        "p3_no_shortcuts",
+        "p4_no_loose_ends",
+        "p5_test_like_an_enemy",
+        "p6_documentation_is_supply_lines",
+        "p7_outcomes_not_plans",
+        "p8_total_responsibility",
+        "p9_decisive_victory"
+      ],
+      "additionalProperties": false,
+      "patternProperties": {
+        "^p[1-9]_[a-z_]+$": {
+          "type": "object",
+          "required": ["status"],
+          "properties": {
+            "status": { "enum": ["pass", "gap", "blocker"] },
+            "evidence": { "type": "string" },
+            "gap_description": { "type": "string" },
+            "recovery": { "type": "string" }
+          }
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "description": "Stop-gate decision.",
+      "required": ["allow", "reason"],
+      "properties": {
+        "allow": { "type": "boolean", "description": "true = ALLOW Stop; false = BLOCK." },
+        "reason": { "type": "string" },
+        "block_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "How many times this turn has been BLOCKed already (max 3 before escalation)."
+        },
+        "override_used": {
+          "type": "boolean",
+          "default": false,
+          "description": "True if the operator invoked /leonidas-override to force-pass."
+        },
+        "override_reason": {
+          "type": ["string", "null"],
+          "description": "Operator-supplied reason for override; logged for weekly review."
+        },
+        "auto_remediate": {
+          "type": "boolean",
+          "default": false,
+          "description": "Was BTOO_AUTO_REMEDIATE=1 in effect? When true, blockers route to a recovery loop instead of halting; data-loss-risk blockers always surface."
+        },
+        "data_loss_risk_blocker": {
+          "type": "boolean",
+          "default": false,
+          "description": "True if any blocker matched a data-loss-risk pattern (force-push, rm -rf, DB drop, reset --hard). These ALWAYS surface, regardless of BTOO_AUTO_REMEDIATE."
+        }
+      }
+    },
+    "auditor_findings": {
+      "type": "object",
+      "description": "Cumulative findings from the Auditor for this turn.",
+      "required": ["tool_compliance", "hallucination_flags", "schema_violations"],
+      "properties": {
+        "tool_compliance": {
+          "type": "object",
+          "properties": {
+            "total_calls": { "type": "integer", "minimum": 0 },
+            "disallowed_calls": { "type": "integer", "minimum": 0 },
+            "disallowed_call_examples": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        },
+        "hallucination_flags": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["claim", "ground_truth", "severity"],
+            "properties": {
+              "claim": { "type": "string" },
+              "ground_truth": { "type": "string" },
+              "severity": { "enum": ["low", "medium", "high"] }
+            }
+          }
+        },
+        "schema_violations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["schema", "message"],
+            "properties": {
+              "schema": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "trace": {
+      "type": "object",
+      "description": "Optional structured trace for debugging — Loop phase timings, sub-agent count, retry count.",
+      "properties": {
+        "loop_phases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "phase": {
+                "enum": ["interpret", "transform", "monitor", "review", "enforce", "verify", "deliver"]
+              },
+              "duration_ms": { "type": "number" },
+              "model": { "type": "string" }
+            }
+          }
+        },
+        "subagent_count": { "type": "integer" },
+        "retry_count": { "type": "integer" }
+      }
+    }
+  }
+}

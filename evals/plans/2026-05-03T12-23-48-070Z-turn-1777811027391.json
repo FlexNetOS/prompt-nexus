@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0.0",
+  "turn_id": "turn-1777811027391",
+  "operator": "david",
+  "timestamp": "2026-05-03T12:23:48.070Z",
+  "backend": "fallback",
+  "duration_ms": 0,
+  "intent": {
+    "schema_version": "1.0.0",
+    "turn_id": "turn-1777811027391",
+    "operator": "david",
+    "timestamp": "2026-05-03T12:23:47.392Z",
+    "cwd": "C:\\Users\\DavidRevenaugh\\AI-Workspace\\_projects\\harness\\agent_harness\\.claude\\worktrees\\happy-williamson-1579f8",
+    "backend": "fallback",
+    "duration_ms": 1,
+    "type": "problem",
+    "scope_hint": "host",
+    "urgency": "high",
+    "content": "The system is acting up — Docker won't start",
+    "confidence": 0.55,
+    "reasoning": "keyword fallback (Haiku unavailable, timed out, or budget exhausted)"
+  },
+  "plan": {
+    "intent_summary": "The system is acting up — Docker won't start",
+    "route": {
+      "layer": "prompt-nexus",
+      "target": "host-environment-doctor",
+      "rationale": "static fallback (Sonnet unavailable)"
+    },
+    "phases": [
+      {
+        "phase_id": "p1",
+        "summary": "execute via target",
+        "exit_criteria": [
+          "target completes"
+        ]
+      }
+    ],
+    "sub_agents": [],
+    "permanent_solve_reachable": true,
+    "estimated_duration_minutes": 30,
+    "data_loss_risk": false,
+    "confidence": 0.5
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0.0",
+  "turn_id": "turn-1777811027391",
+  "operator": "david",
+  "timestamp": "2026-05-03T12:23:47.392Z",
+  "cwd": "C:\\Users\\DavidRevenaugh\\AI-Workspace\\_projects\\harness\\agent_harness\\.claude\\worktrees\\happy-williamson-1579f8",
+  "backend": "fallback",
+  "duration_ms": 1,
+  "type": "problem",
+  "scope_hint": "host",
+  "urgency": "high",
+  "content": "The system is acting up — Docker won't start",
+  "confidence": 0.55,
+  "reasoning": "keyword fallback (Haiku unavailable, timed out, or budget exhausted)"
+}

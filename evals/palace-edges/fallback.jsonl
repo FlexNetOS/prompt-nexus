@@ -1,0 +1,3 @@
+{"srcKind":"test","srcId":"bootstrap-1","dstKind":"test","dstId":"bootstrap-2","relation":"self-test","weight":1,"metadata":{"source":"memory-bootstrap"}}
+{"srcKind":"test","srcId":"bootstrap-1","dstKind":"test","dstId":"bootstrap-2","relation":"self-test","weight":1,"metadata":{"source":"memory-bootstrap"}}
+{"srcKind":"intent","srcId":"turn-1777798871711","dstKind":"tool_call","dstId":"Bash","relation":"invoked","weight":1,"metadata":{"ts":"2026-05-03T09:01:11.717Z"}}

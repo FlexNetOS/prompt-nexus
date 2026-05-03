@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0.0",
+  "turn_id": "turn-1777799700457",
+  "operator": "david",
+  "timestamp": "2026-05-03T09:15:00.458Z",
+  "cwd": "C:\\Users\\DavidRevenaugh\\AI-Workspace\\_projects\\harness\\agent_harness\\.claude\\worktrees\\kind-rubin-1a6f24",
+  "backend": "fallback",
+  "duration_ms": 2,
+  "type": "problem",
+  "scope_hint": "code",
+  "urgency": "normal",
+  "content": "then review all the pull request and fix the workflow error. that does not include downgrading or committing out code.",
+  "confidence": 0.55,
+  "reasoning": "keyword fallback (Haiku unavailable, timed out, or budget exhausted)"
+}
